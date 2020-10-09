@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build" basedir="." default="compile">
+	<!-- クリーン -->
+	<target name="clean">
+		<delete dir="./bin" />
+	</target>
+ 
+	<!-- コンパイル -->
+	<target name="compile">
+		<mkdir dir="./bin/main" />
+		<javac srcdir="./src/main" destdir="./bin/main" encoding="UTF-8" includeantruntime="false">
+		</javac>
+	</target>
+ 
+	<!-- テストコードコンパイル -->
+	<target name="test-compile">
+		<mkdir dir="./bin/test" />
+		<javac srcdir="./src/test" destdir="./bin/test" encoding="UTF-8" includeantruntime="false">
+			<classpath location="./bin/main" />
+			<classpath location="./libs/junit-4.10.jar" />
+		</javac>
+	</target>
+ 
+	<!-- JUnitテスト -->
+	<target name="test" depends="compile,test-compile">
+		<delete dir="./ant/report" />
+		<mkdir dir="./ant/report" />
+		<junit fork="yes" haltonfailure="no">
+			<classpath location="./libs/junit-4.10.jar" />
+			<classpath location="./bin/test" />
+			<classpath location="./bin/main" />
+			<formatter type="xml" />
+			<batchtest todir="./ant/report">
+				<fileset dir="./bin/test" />
+			</batchtest>
+		</junit>
+	</target>
+ 
+	<!-- FindBugs -->
+	<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpath="./ant/findbugs/lib/findbugs-ant.jar" />
+	<target name="findbugs" depends="compile">
+		<findbugs home="./ant/findbugs" output="xml" outputFile="./ant/report/findbugs-report.xml">
+			<sourcePath path="./src/main" />
+			<class location="./bin/main" />
+		</findbugs>
+	</target>
+ 
+	<!-- CheckStyle -->
+	<taskdef resource="checkstyletask.properties" classpath="./ant/checkstyle/checkstyle-5.5-all.jar" />
+	<target name="checkstyle">
+		<checkstyle config="./ant/checkstyle/sun_checks.xml" failOnViolation="false">
+			<formatter type="xml" tofile="./ant/report/checkstyle_report.xml" />
+			<fileset dir="./src/main" includes="**/*.java" />
+		</checkstyle>
+	</target>
+ 
+	<target name="all" depends="clean,compile,test-compile,test,findbugs,checkstyle" />
+</project>
